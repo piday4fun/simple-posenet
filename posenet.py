@@ -1,0 +1,63 @@
+#import tflite_runtime.interpreter as tflite
+import tensorflow.lite as tflite
+import numpy as np 
+import cv2
+
+class PoseNet():
+    def __init__(self, model):
+        self.interpreter = tflite.Interpreter(model_path = model)
+        self.interpreter.allocate_tensors()
+
+        self.input_detail = self.interpreter.get_input_details()
+        self.output_detail = self.interpreter.get_output_details()
+
+    #
+    #   输入为 257*353（宽*高）的RGB图像
+    #
+    def input(self, image):
+        self.interpreter.set_tensor(self.input_detail[0]['index'], image)
+
+
+    #
+    #   输出3个张量：
+    #      scores：   17*23*17 (宽*高*关节) 关节热力图，每个关节 17*23个块，热力值表示可信度
+    #      offsets：  17*23*34 (宽*高*(关节*2))关节块内坐标，34个层前17个是每个关节的块内Y坐标，后17个是每个关节的块内X坐标
+    #      displace： 
+    #
+    def output(self):
+        scores = self.interpreter.get_tensor(self.output_detail[0]['index'])
+        offsets = self.interpreter.get_tensor(self.output_detail[1]['index'])
+        displace = self.interpreter.get_tensor(self.output_detail[2]['index'])
+
+        return (scores, offsets, displace)
+
+    #  
+    #   调整图像为网络定义的格式
+    #
+    def preprocess(self, image):
+        # 分辨率调整为 257*353
+        (w, h, d) = image.shape
+        if not (w == 257 and h == 353 ):  
+            image = cv2.resize(image, (257, 353))
+
+        # 增加额外的维度
+        expand_img = np.expand_dims(image, axis = 0)
+        # 像素值调整为单精度浮点
+        float_img = expand_img.astype('float32')
+        # 像素值范围调整为 [-1, 1]
+        float_img = float_img / 255 * 2.0 - 1
+
+        return float_img
+
+    #
+    #   调用网络
+    #
+    def feed(self, image):
+        net_image = self.preprocess(image)
+        self.input(net_image)
+        self.interpreter.invoke()
+        
+        return self.output()
+
+
+   
