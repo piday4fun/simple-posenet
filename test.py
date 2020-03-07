@@ -7,9 +7,10 @@ from PIL import Image
 
 from posenet import PoseNet
 from pose_decoder import PoseDecoder
-from pose_draw import DrawPos
+from pose_draw import PoseDrawer
 
-model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
+#model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
+model_path = "model/posenet_mobilenet.tflite"
 rtsp_url = ""
 
 start_time = time.time()
@@ -115,13 +116,14 @@ def test():
     global frames
 
     net = PoseNet(model_path)
+    drawer = PoseDrawer(net.InputSize)
 
     while True:
         image = read(iter)
         output = net.feed(image)
-        decoder = PoseDecoder(output)
+        decoder = PoseDecoder(output, net.Stride)
         pose =  decoder.decode_single()
-        DrawPos(image, pose)
+        drawer.Draw(image, pose)
 
         ShowFPS(image)
         cv2.imshow("result", image)

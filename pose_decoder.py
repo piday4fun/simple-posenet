@@ -1,6 +1,6 @@
 class PoseDecoder:
-    def __init__(self, net_result):
-        self.stride = 16    # 块大小    
+    def __init__(self, net_result, stride):
+        self.stride = stride    # 块大小    
         self.threshold = 0.5
         self.max_detection = 5
         self.nmsr = 50
@@ -27,6 +27,7 @@ class PoseDecoder:
 
     def MaxHeat(self, key):
         [count_y, count_x, keys] = self.scores.shape[1:]
+        (stride_x, stride_y) = self.stride
 
         # 搜索热力值最高的块
         max_y = 0   
@@ -41,7 +42,7 @@ class PoseDecoder:
                     max_value = value
 
         # 关节坐标 = 块坐标 * 块大小 + 块内坐标
-        x = self.offsets[0, max_y, max_x, key + keys] + max_x * self.stride
-        y = self.offsets[0, max_y, max_x, key] + max_y * self.stride
+        x = self.offsets[0, max_y, max_x, key + keys] + max_x * stride_x
+        y = self.offsets[0, max_y, max_x, key] + max_y * stride_y
 
         return (x, y, max_value)

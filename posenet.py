@@ -11,6 +11,12 @@ class PoseNet():
         self.input_detail = self.interpreter.get_input_details()
         self.output_detail = self.interpreter.get_output_details()
 
+        [input_h, input_w] = self.input_detail[0]["shape"][1:3]
+        [output_h, output_w] = self.output_detail[0]["shape"][1:3]
+
+        self.InputSize = (input_w, input_h)
+        self.Stride = (round(input_w / output_w), round(input_h / output_h))
+
     #
     #   输入为 257*353（宽*高）的RGB图像
     #
@@ -37,8 +43,10 @@ class PoseNet():
     def preprocess(self, image):
         # 分辨率调整为 257*353
         (w, h, d) = image.shape
-        if not (w == 257 and h == 353 ):  
-            image = cv2.resize(image, (257, 353))
+        (image_w, image_h) = self.InputSize
+
+        if not (w == image_w and h == image_h):  
+            image = cv2.resize(image, (image_w, image_h))
 
         # 增加额外的维度
         expand_img = np.expand_dims(image, axis = 0)

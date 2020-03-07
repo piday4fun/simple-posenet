@@ -57,31 +57,36 @@ def build():
         else:
             PartLinks[src_id] = [dest_id]
     
+class PoseDrawer:
+    def __init__(self, size):
+        (self.Width, self.Height) = size
 
-def DrawPos(image, pose):
-    (height, widht, channel) = image.shape
-    scale_x = widht / 257.0
-    scale_y = height / 353.0
+    def Draw(self, image, pose):
+        (height, widht, channel) = image.shape
+        scale_x = widht / self.Width
+        scale_y = height / self.Height
 
-    scale = lambda x, y:  (int(x * scale_x), int(y * scale_y))
+        scale = lambda x, y:  (int(x * scale_x), int(y * scale_y))
 
-    point_color = (0,244,289)
-    link_color = (0,0,255)
+        point_color = (0,244,289)
+        link_color = (0,0,255)
 
-    for key in pose:
-        # 绘制关节
-        (x, y, score) = pose[key]
-        pos = scale(x, y)
-        cv2.circle(image, pos, 3, point_color, 2)
+        for key in pose:
+            # 绘制关节
+            (x, y, score) = pose[key]
+            pos = scale(x, y)
+            cv2.circle(image, pos, 3, point_color, 2)
 
 
-        # 绘制关节连线
-        if key in PartLinks:
-            link_keys = PartLinks[key]
-            for lk in link_keys:
-                (link_x, link_y, link_score) = pose[lk]
-                link_pos = scale(link_x, link_y)
-                cv2.line(image, pos, link_pos, link_color, 1)
+            # 绘制关节连线
+            if key in PartLinks:
+                link_keys = PartLinks[key]
+                for lk in link_keys:
+                    (link_x, link_y, link_score) = pose[lk]
+                    link_pos = scale(link_x, link_y)
+                    cv2.line(image, pos, link_pos, link_color, 1)
 
-   
+#
+#
+#    
 build()
