@@ -22,7 +22,7 @@ class PoseNet():
     #   输出3个张量：
     #      scores：   17*23*17 (宽*高*关节) 关节热力图，每个关节 17*23个块，热力值表示可信度
     #      offsets：  17*23*34 (宽*高*(关节*2))关节块内坐标，34个层前17个是每个关节的块内Y坐标，后17个是每个关节的块内X坐标
-    #      displace： 
+    #      displace： 17*23*64 16个多目标偏移(相对于块)，每个目标有前向偏移X，Y，反向偏移X，Y各4层
     #
     def output(self):
         scores = self.interpreter.get_tensor(self.output_detail[0]['index'])

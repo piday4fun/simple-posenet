@@ -65,7 +65,6 @@ def DrawPos(image, pose):
 
     scale = lambda x, y:  (int(x * scale_x), int(y * scale_y))
 
-    # (random.randint(50,250),random.randint(50,250),random.randint(50,250))
     point_color = (0,244,289)
     link_color = (0,0,255)
 
