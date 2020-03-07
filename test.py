@@ -10,6 +10,8 @@ from pose_decoder import PoseDecoder
 from pose_draw import DrawPos
 
 model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
+rtsp_url = ""
+
 start_time = time.time()
 read_time = 0
 resize_time = 0
@@ -106,9 +108,8 @@ def SelectSource(source):
         iter = GIFIterator("images/test.gif")
     elif source == "mp4":
         iter = VedeoIterator("images/test1.mp4")
-
-
-SelectSource("mp4")
+    elif source == "rtsp":
+        iter = VedeoIterator(rtsp_url)
 
 def test():
     global frames
@@ -135,4 +136,6 @@ def test():
 #
 # main
 #
+
+SelectSource("mp4")
 test()
