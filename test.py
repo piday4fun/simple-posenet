@@ -97,8 +97,9 @@ def ShowFPS(image):
                 cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 0, 255), 2)
 
 
-def read(iter):
-    image = iter.__next__()
+def read(iter, skip = 1):
+    for i in range(skip):
+        image = iter.__next__()
     # ret_val, image = cam.read()
 
     return image
@@ -112,7 +113,7 @@ def SelectSource(source):
     elif source == "gif":
         iter = GIFIterator("images/test.gif")
     elif source == "mp4":
-        iter = VedeoIterator("images/test1.mp4")
+        iter = VedeoIterator("images/test4.mp4")
     elif source == "rtsp":
         iter = VedeoIterator(rtsp_url)
 
@@ -165,7 +166,7 @@ def test():
     while True:
         frames += 1
 
-        image = read(iter)
+        image = read(iter, 1)
         output = net.feed(image)
         decoder = PoseDecoder(output, net.Stride)
         pose = decoder.decode_single()
