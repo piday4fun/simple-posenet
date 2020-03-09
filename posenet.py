@@ -15,7 +15,7 @@ class PoseNet():
         [output_h, output_w] = self.output_detail[0]["shape"][1:3]
 
         self.InputSize = (input_w, input_h)
-        self.Stride = (round(input_w / output_w), round(input_h / output_h))
+        self.Stride = ((input_w / output_w), (input_h / output_h))
 
     #
     #   输入为 257*353（宽*高）的RGB图像

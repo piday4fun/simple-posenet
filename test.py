@@ -8,10 +8,11 @@ from PIL import Image
 from posenet import PoseNet
 from pose_decoder import PoseDecoder
 from pose_draw import PoseDrawer
+from pose_queue import PoseQueue
 
 #model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
 model_path = "model/posenet_mobilenet.tflite"
-rtsp_url = ""
+rtsp_url = "rtmp://solasolo.oicp.net/live"
 
 start_time = time.time()
 read_time = 0
@@ -21,6 +22,7 @@ draw_time = 0
 frames = 0
 
 iter = None
+
 
 def GIFIterator(file):
     gif = Image.open(file)
@@ -59,13 +61,15 @@ def ImageIterator(path):
 
 
 def VedeoIterator(url):
-    cap = cv2.VideoCapture(url)
-    ret, frame = cap.read()
-    while ret:
+    while True:
+        cap = cv2.VideoCapture(url)
         ret, frame = cap.read()
-        small = cv2.resize(frame, (257, 353))
-        
-        yield small
+        while ret:
+            ret, frame = cap.read()
+            if ret:
+                small = cv2.resize(frame, (257, 353))
+
+                yield small
 
 
 def Timer(var):
@@ -105,30 +109,74 @@ def SelectSource(source):
 
     if source == "images":
         iter = ImageIterator("images")
-    elif source == "gif":    
+    elif source == "gif":
         iter = GIFIterator("images/test.gif")
     elif source == "mp4":
         iter = VedeoIterator("images/test1.mp4")
     elif source == "rtsp":
         iter = VedeoIterator(rtsp_url)
 
+def ShowChart(queue):
+    w = 600
+    h = 400
+    base1 = 100
+    base2 = 300
+
+    image = np.zeros((h, w, 3), np.uint8)
+    image.fill(0)
+
+    poses = queue.all()
+    length = len(poses)
+
+    line = lambda i, y1, y2, c: cv2.line(image, ((i - 1) * 6, y1), (i * 6, y2), c, 1)
+
+    if length > 0:
+        hip_y1 = poses[0].getRL_Y("HIP")
+        knee_y1 = poses[0].getRL_Y("KNEE")        
+        shoulder_y1 = poses[0].getRL_Y("SHOULDER")
+
+        cv2.line(image, (0, base1), (w -1, base1), (127, 127, 127), 1)        
+        cv2.line(image, (0, base2), (w -1, base2), (127, 127, 127), 1)
+
+        for index in range(1, length):
+            pose = poses[index]
+            hip_y2 = pose.getRL_Y("HIP")
+            knee_y2 = pose.getRL_Y("KNEE")            
+            shoulder_y2 = pose.getRL_Y("SHOULDER")
+
+            line(index, hip_y1, hip_y2, (255, 0, 0))
+            line(index, shoulder_y1 - hip_y1 + base1, shoulder_y2 - hip_y2 + base1, (0, 255, 0))
+            line(index, hip_y1 - knee_y1 + base2, hip_y2 - knee_y2 + base2, (0, 255, 0))
+            
+            hip_y1 = hip_y2
+            knee_y1 = knee_y2
+            shoulder_y1 =shoulder_y2
+
+    cv2.imshow("chart", image)
+
+
 def test():
     global frames
 
     net = PoseNet(model_path)
     drawer = PoseDrawer(net.InputSize)
+    queue = PoseQueue()
 
     while True:
+        frames += 1
+
         image = read(iter)
         output = net.feed(image)
         decoder = PoseDecoder(output, net.Stride)
-        pose =  decoder.decode_single()
+        pose = decoder.decode_single()
         drawer.Draw(image, pose)
 
-        ShowFPS(image)
-        cv2.imshow("result", image)
+        queue.push(pose)
 
-        frames += 1
+        ShowFPS(image)
+        cv2.imshow("pic", image)
+
+        ShowChart(queue)
         # PrintTimer()
 
         if cv2.waitKey(1) == 27:
@@ -138,6 +186,7 @@ def test():
 #
 # main
 #
+
 
 SelectSource("mp4")
 test()
