@@ -116,6 +116,8 @@ def SelectSource(source):
         iter = VedeoIterator("images/test4.mp4")
     elif source == "rtsp":
         iter = VedeoIterator(rtsp_url)
+    elif source == "camera":
+        iter = VedeoIterator(0)
 
 def ShowChart(queue):
     w = 600
