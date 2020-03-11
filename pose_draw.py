@@ -71,6 +71,7 @@ class PoseDrawer:
         point_color = (0,244,289)
         link_color = (0,0,255)
         hint_color = (255, 0 , 0)
+        week_color = (0, 255, 0)
 
         for key in pose:
             # 绘制关节
@@ -78,8 +79,9 @@ class PoseDrawer:
             pos = scale(x, y)
 
             color = hint_color if key == PartIDs["LEFT_HIP"] or key == PartIDs["RIGHT_HIP"] else point_color
-            cv2.circle(image, pos, 3, color, 2)
+            if score < 0.5 : color = week_color
 
+            cv2.circle(image, pos, 3, color, 2)
 
             # 绘制关节连线
             if key in PartLinks:
@@ -87,7 +89,7 @@ class PoseDrawer:
                 for lk in link_keys:
                     (link_x, link_y, link_score) = pose[lk]
                     link_pos = scale(link_x, link_y)
-                    cv2.line(image, pos, link_pos, link_color, 1)
+                    cv2.line(image, pos, link_pos, link_color, 2)
 
 #
 #
