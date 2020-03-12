@@ -5,15 +5,16 @@ import numpy as np
 from PIL import Image
 # import matplotlib.pyplot as plt
 
-from posenet import PoseNet
-from pose_decoder import PoseDecoder
+
 from pose_draw import PoseDrawer
 from pose_queue import PoseQueue
-from pose_analyzer import PoseAnalyzer
+from posenet import PoseNet
+from process import Process
 
 #model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
 model_path = "model/posenet_mobilenet_v1_100_257x257_multi_kpt_stripped.tflite"
-rtsp_url = "rtmp://solasolo.oicp.net/live"
+
+rtsp_url = "rtmp://183.193.245.158/live/"
 
 start_time = time.time()
 read_time = 0
@@ -92,10 +93,10 @@ def PrintTimer():
             frames, frames / (time.time() - start_time), read_time, resize_time, predict_time, draw_time))
 
 
-def ShowFPS(image):
-    text = "fps:%2.2f" % (frames / (time.time() - start_time))
+def ShowFPS(image, fps):
+    text = "fps: %2.2f" % fps
     cv2.putText(image, text, (5, 50),
-                cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 0, 255), 2)
+                cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 0, 255), 2)
 
 
 def read(iter, skip = 1):
@@ -159,38 +160,28 @@ def test():
     global frames
 
     net = PoseNet(model_path)
+    Proc = Process(net) 
+
     drawer = PoseDrawer(net.InputSize)
     queue = PoseQueue()
-    Analyzer = PoseAnalyzer()
-
-    action_time = None
+    pose = None
 
     while True:
         frames += 1
 
-        image = read(iter, 10)
-        output = net.feed(image)
-        decoder = PoseDecoder(output, 32)
-        pose = decoder.decode_single()
-        drawer.Draw(image, pose)
+        image = read(iter, 1)
+        Proc.setImage(image)
 
-        queue.push(pose)
+        result = Proc.getPose()
+        if not result == None:
+            (img, pose) = result
 
-        ShowFPS(image)
-        cv2.imshow("pic", image)
+            queue.push(pose)     
 
-
-        lst = queue.all()
-        (shoulder, hip, knee) = lst[0].RelativeY()
-        (done, action, _) = Analyzer.do(pose)
-        
-        if done:
-            now_time = time.time()
-            t = 0 if action_time == None else now_time - action_time
-            
-            action_time = now_time
-            print("Done", t)
-        # print(shoulder, hip, knee, action, done)
+            drawer.Draw(img, pose)
+            fps = Proc.getFPS()
+            ShowFPS(img, fps)
+            cv2.imshow("pic", img)
 
         ShowChart(queue)
         # PrintTimer()
@@ -198,11 +189,12 @@ def test():
         if cv2.waitKey(1) == 27:
             break
 
+    Proc.Shutdwon()
     cv2.destroyAllWindows()
 #
 # main
 #
 
 
-SelectSource("mp4")
+SelectSource("rtsp")
 test()

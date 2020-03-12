@@ -26,9 +26,11 @@ class PoseAnalyzer:
         self.ShortQueue.push(pose)
         self.LongQueue.push(pose)
 
-        (_, max_hip, _) = self.LongQueue.MaxY()        
-        (_, min_hip, _) = self.LongQueue.MinY()
+        (_, max_hip, max_knee) = self.LongQueue.MaxY()        
+        (_, min_hip, min_knee) = self.LongQueue.MinY()
 
+        leg = max_hip - max_knee 
+        
         action = Action.KEEP
         score = 0
 
@@ -37,9 +39,9 @@ class PoseAnalyzer:
             (_, hip1, _) = short_list[0].RelativeY()
             (_, hip2, _) = short_list[SHORT_TIME - 1].RelativeY()
 
-            if hip1 > hip2 and (hip1 - hip2) > max_hip / 5:
+            if hip1 > hip2 and (hip1 - hip2) > leg / 4:
                 action = Action.UP
-            if hip1 < hip2 and (hip2 - hip1) > max_hip / 5:
+            if hip1 < hip2 and (hip2 - hip1) > leg / 4:
                 action = Action.DOWN
 
         done = False
