@@ -14,7 +14,7 @@ from process import Process
 #model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
 model_path = "model/posenet_mobilenet_v1_100_257x257_multi_kpt_stripped.tflite"
 
-rtsp_url = "rtmp://183.193.245.158/live/"
+rtsp_url = "rtmp://192.168.3.20/live/"
 
 start_time = time.time()
 read_time = 0
