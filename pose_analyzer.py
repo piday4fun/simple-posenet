@@ -58,5 +58,4 @@ class PoseAnalyzer:
                 done = True
 
 
-
         return (done, action, score)

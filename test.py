@@ -1,20 +1,25 @@
 import time
+import json
 import cv2
 import os
 import numpy as np
 from PIL import Image
-# import matplotlib.pyplot as plt
+import paho.mqtt.client as mqtt
 
+# import matplotlib.pyplot as plt
 
 from pose_draw import PoseDrawer
 from pose_queue import PoseQueue
 from posenet import PoseNet
 from process import Process
 
+MQTT_HOST = "solasolo.oicp.net"
+MQTT_PORT = 1883
+
 #model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
 model_path = "model/posenet_mobilenet_v1_100_257x257_multi_kpt_stripped.tflite"
 
-rtsp_url = "rtmp://183.193.245.158/live/"
+stream_url = "rtmp://192.168.10.163/live"
 
 start_time = time.time()
 read_time = 0
@@ -116,8 +121,8 @@ def SelectSource(source):
         iter = GIFIterator("images/test.gif")
     elif source == "mp4":
         iter = VedeoIterator("images/test1.mp4")
-    elif source == "rtsp":
-        iter = VedeoIterator(rtsp_url)
+    elif source == "stream":
+        iter = VedeoIterator(stream_url)
     elif source == "camera":
         iter = VedeoIterator(0)
 
@@ -156,11 +161,19 @@ def ShowChart(queue):
     cv2.imshow("chart", image)
 
 
+
+client = mqtt.Client()
+client.connect(MQTT_HOST, MQTT_PORT, 60)
+
+def ActionCallback(data):
+    print(data)
+    client.publish("piday4fun/action", json.dumps(data))
+
 def test():
     global frames
 
     net = PoseNet(model_path)
-    Proc = Process(net) 
+    Proc = Process(net, ActionCallback) 
 
     drawer = PoseDrawer(net.InputSize)
     queue = PoseQueue()
@@ -196,5 +209,5 @@ def test():
 #
 
 
-SelectSource("rtsp")
+SelectSource("stream")
 test()

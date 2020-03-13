@@ -6,13 +6,14 @@ from posenet import PoseNet
 from pose_analyzer import PoseAnalyzer
 
 class Process:
-    def __init__(self, net):
+    def __init__(self, net, callback):
         self.ImageQueue = Queue()
         self.PoseQueue = Queue()
         self.OutPoseQueue = Queue()
         self.Net = net
         self.FrameCount = 0
         self.StartTime = time.time()
+        self.Callback = callback
 
         self.Runing = True
 
@@ -56,6 +57,7 @@ class Process:
             self.OutPoseQueue.put((image, pose), True)
 
     def Analysis(self):
+        count = 0
         action_time = None
         Analyzer = PoseAnalyzer()
 
@@ -68,4 +70,6 @@ class Process:
                 t = 0 if action_time == None else now_time - action_time
 
                 action_time = now_time
-                print("Done", t)
+                count += 1
+                
+                self.Callback({"count": count, "time": t})
