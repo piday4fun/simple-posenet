@@ -5,8 +5,6 @@ class PoseQueue:
         self.Size = len
         self.Queue = []
 
-
-
     def push(self, pose):
         self.Queue.insert(0, PoseSet(pose))
         if len(self.Queue) > self.Size:

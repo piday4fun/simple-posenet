@@ -5,6 +5,8 @@ from pose_decoder import PoseDecoder
 from posenet import PoseNet
 from pose_analyzer import PoseAnalyzer
 
+POSE_THRESHOLD = 0
+
 class Process:
     def __init__(self, net, callback):
         self.ImageQueue = Queue()
@@ -52,9 +54,12 @@ class Process:
             output = self.Net.feed(image)
             decoder = PoseDecoder(output, 32)
             pose = decoder.decode_single()
-            self.PoseQueue.put(pose, True)
+            
+            score = self.Evaluation(pose)
+            if(score > POSE_THRESHOLD):
+                self.PoseQueue.put(pose, True)
 
-            self.OutPoseQueue.put((image, pose), True)
+            self.OutPoseQueue.put((image, pose, score), True)
 
     def Analysis(self):
         count = 0
@@ -73,3 +78,13 @@ class Process:
                 count += 1
                 
                 self.Callback({"count": count, "time": t})
+
+    def Evaluation(self, pose):
+        score = 0
+
+        for k in pose:
+            (_, _, s) = pose[k]
+            score += s
+
+
+        return score

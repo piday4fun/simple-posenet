@@ -19,7 +19,7 @@ MQTT_PORT = 1883
 #model_path = "model/multi_person_mobilenet_v1_075_float.tflite"
 model_path = "model/posenet_mobilenet_v1_100_257x257_multi_kpt_stripped.tflite"
 
-stream_url = "rtmp://192.168.10.163/live"
+stream_url = "rtmp://solasolo.oicp.net/live"
 
 start_time = time.time()
 read_time = 0
@@ -98,8 +98,8 @@ def PrintTimer():
             frames, frames / (time.time() - start_time), read_time, resize_time, predict_time, draw_time))
 
 
-def ShowFPS(image, fps):
-    text = "fps: %2.2f" % fps
+def ShowFPS(image, fps, score):
+    text = "f: %2.2f s: %2.2f" % (fps, score)
     cv2.putText(image, text, (5, 50),
                 cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 0, 255), 2)
 
@@ -187,13 +187,13 @@ def test():
 
         result = Proc.getPose()
         if not result == None:
-            (img, pose) = result
+            (img, pose, score) = result
 
             queue.push(pose)     
 
             drawer.Draw(img, pose)
             fps = Proc.getFPS()
-            ShowFPS(img, fps)
+            ShowFPS(img, fps, score)
             cv2.imshow("pic", img)
 
         ShowChart(queue)
